@@ -6,7 +6,13 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem('user');
     if (savedUser && savedUser !== 'undefined') {
-      try { return JSON.parse(savedUser); } catch (e) { return null; }
+      try { 
+        const parsed = JSON.parse(savedUser);
+        // Pastikan jika data tersimpan dalam bentuk bertumpuk, ambil objek user bagian dalam
+        return parsed?.user || parsed;
+      } catch (e) { 
+        return null; 
+      }
     }
     return null;
   });
@@ -17,15 +23,22 @@ export const AuthProvider = ({ children }) => {
   });
 
   const loginUser = (userData, authToken) => {
-    console.log('Menerima loginUser:', { userData, authToken });
+    console.log('Menerima loginUser raw:', { userData, authToken });
 
-    if (userData) {
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
+    // 1. Ekstrak objek user yang sebenarnya (mengatasi tumpukan userData.user)
+    const actualUser = userData?.user || userData;
+
+    // 2. Ekstrak token (ambil dari authToken atau dari userData.token jika authToken undefined)
+    const actualToken = authToken || userData?.token;
+
+    if (actualUser) {
+      setUser(actualUser);
+      localStorage.setItem('user', JSON.stringify(actualUser));
     }
-    if (authToken) {
-      setToken(authToken);
-      localStorage.setItem('token', authToken);
+
+    if (actualToken) {
+      setToken(actualToken);
+      localStorage.setItem('token', actualToken);
     }
   };
 

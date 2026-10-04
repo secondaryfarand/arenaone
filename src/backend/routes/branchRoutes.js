@@ -1,16 +1,13 @@
 import { Router } from 'express';
-import { 
-  createBranch, 
-  getOwnerBranches, 
-  updateBranch, 
-  deleteBranch 
-} from '../controllers/branchController.js';
+import branchController from '../controllers/branchController.js';
+import { verifyToken } from '../utils/jwt.js';
+import authMiddleware from '../middlewares/authMiddleware.js';
 
 const router = Router();
 
-router.post('/', createBranch);
-router.get('/owner/:ownerId', getOwnerBranches);
-router.put('/:id', updateBranch);
-router.delete('/:id', deleteBranch);
+// URL jadinya: /api/v1/branches/owner
+router.get('/owner/branches', authMiddleware.authenticateToken, authMiddleware.authorizeRoles('OWNER'), branchController.getOwnerBranches);
+router.post('/owner/branches', authMiddleware.authenticateToken, authMiddleware.authorizeRoles('OWNER'), branchController.createBranch);
+router.post('/owner/branches/:branchId/fields', authMiddleware.authenticateToken, authMiddleware.authorizeRoles('OWNER'), branchController.createField);
 
 export default router;

@@ -1,14 +1,12 @@
 :root {
-  /* Font Family */
+
   --font-main: 'Montserrat', sans-serif;
 
-  /* Primary Theme (Merah Arena) */
   --primary: #dc2626;
   --primary-hover: #b91c1c;
   --primary-light: #fee2e2;
   --primary-subtle: #fff1f1;
 
-  /* Secondary & Neutrals */
   --secondary: #0f172a;
   --secondary-hover: #1e293b;
   --background: #f8fafc;
@@ -17,12 +15,10 @@
   --text-muted: #64748b;
   --border: #e2e8f0;
 
-  /* Status Colors */
   --success: #16a34a;
   --warning: #d97706;
   --danger: #ef4444;
 
-  /* Elevation & Radius */
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;

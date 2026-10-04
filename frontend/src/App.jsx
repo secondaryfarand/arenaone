@@ -9,12 +9,12 @@ import { Login } from './features/auth/Login.jsx';
 import { Register } from './features/auth/Register.jsx'; // Jika ada Register
 import { BookingPage } from './features/booking/pages/BookingPage.jsx';
 import { OwnerDashboard } from './features/owner/OwnerDashboard.jsx';
+import OwnerBranches from './features/owner/OwnerBranches';
 
 export function App() {
   return (
     <AuthProvider>
       <Routes>
-        {/* 1. Halaman Publik dengan Navbar & Footer dari MainLayout */}
         <Route element={<MainLayout />}>
           <Route path="/" element={<BookingPage />} />
           <Route path="/booking" element={<BookingPage />} />
@@ -27,6 +27,7 @@ export function App() {
         {/* 3. Halaman Terproteksi khusus Role OWNER */}
         <Route element={<ProtectedRoute allowedRoles={['OWNER']} />}>
           <Route path="/owner" element={<OwnerDashboard />} />
+          <Route path="/owner/branches" element={<OwnerBranches />} />
         </Route>
       </Routes>
     </AuthProvider>

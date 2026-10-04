@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET || 'secret_key_fallback';
 
 export const generateToken = (user) => {
   return jwt.sign(
@@ -11,5 +11,9 @@ export const generateToken = (user) => {
 };
 
 export const verifyToken = (token) => {
+  if (!token || typeof token !== 'string' || token === 'undefined') {
+    throw new Error('Token tidak ditemukan atau bukan string valid');
+  }
+
   return jwt.verify(token, JWT_SECRET);
 };

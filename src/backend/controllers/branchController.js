@@ -1,46 +1,121 @@
-import { 
-  createBranchService, 
-  getBranchesByOwnerService, 
-  updateBranchService, 
-  deleteBranchService 
-} from '../services/branchService.js';
+import { PrismaClient } from '@prisma/client';
 
-export const createBranch = async (req, res) => {
-  try {
-    const branch = await createBranchService(req.body);
-    return res.status(201).json({ success: true, data: branch });
-  } catch (error) {
-    console.error('[Create Branch Error]:', error.message);
-    return res.status(400).json({ success: false, message: error.message });
-  }
-};
+const prisma = new PrismaClient();
 
 export const getOwnerBranches = async (req, res) => {
   try {
-    const { ownerId } = req.params;
-    const branches = await getBranchesByOwnerService(ownerId);
-    return res.status(200).json({ success: true, data: branches });
+    const ownerId = req.user.id; // Diambil dari token
+    
+    // Sesuaikan query dengan ORM/Database kamu (Prisma/MongoDB)
+    const branches = await prisma.branch.findMany({
+      where: { ownerId: ownerId },
+      include: { 
+        fields: true 
+      }
+    });
+
+    // PASTI KIRIM RESPON
+    return res.status(200).json({
+      success: true,
+      data: branches
+    });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    console.error('Error in getOwnerBranches:', error);
+    // JIKA ERROR, WAJIB BERI RESPON AGAR FRONTEND TIDAK HANGING
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'Internal Server Error'
+    });
   }
 };
 
-export const updateBranch = async (req, res) => {
+// controllers/branchController.js
+export const createBranch = async (req, res) => {
   try {
-    const { id } = req.params;
-    const branch = await updateBranchService(id, req.body);
-    return res.status(200).json({ success: true, data: branch });
+    const { name, address, phone } = req.body;
+    
+    // Pastikan req.user.id ada (di-set oleh authMiddleware)
+    const ownerId = req.user?.id || req.user?.userId;
+
+    if (!name || !address) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Nama dan alamat cabang wajib diisi' 
+      });
+    }
+
+    const newBranch = await prisma.branch.create({
+      data: {
+        name,
+        address,
+        phone,
+        ownerId // Sesuaikan nama relasi ke User (Owner) di schema.prisma
+      }
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: 'Cabang berhasil ditambahkan',
+      data: newBranch
+    });
   } catch (error) {
-    return res.status(400).json({ success: false, message: error.message });
+    console.error('Error saat membuat cabang:', error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'Gagal menambahkan cabang ke database'
+    });
   }
 };
 
-export const deleteBranch = async (req, res) => {
+const createField = async (req, res) => {
+  try {
+    const { branchId } = req.params;
+    const { name, type, pricePerHour } = req.body;
+
+    const newField = await prisma.field.create({
+      data: {
+        name,
+        type,
+        pricePerHour: Number(pricePerHour),
+        branchId
+      }
+    });
+
+    res.status(201).json({ success: true, data: newField });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Penyesuaian stubs untuk update & delete agar tidak error saat dipanggil router
+const updateBranch = async (req, res) => {
   try {
     const { id } = req.params;
-    await deleteBranchService(id);
-    return res.status(200).json({ success: true, message: 'Cabang berhasil dihapus' });
+    const { name, address, phone } = req.body;
+    const updated = await prisma.branch.update({
+      where: { id },
+      data: { name, address, phone }
+    });
+    res.json({ success: true, data: updated });
   } catch (error) {
-    return res.status(400).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
+};
+
+const deleteBranch = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await prisma.branch.delete({ where: { id } });
+    res.json({ success: true, message: 'Cabang berhasil dihapus' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export default {
+  getOwnerBranches,
+  createBranch,
+  createField,
+  updateBranch,
+  deleteBranch
 };
