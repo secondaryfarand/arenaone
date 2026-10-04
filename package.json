@@ -5,13 +5,12 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "postinstall": "prisma skills sync || exit 0",
+    "postinstall": "prisma generate",
 
     "dev:backend": "nodemon src/backend/server.js",
     "dev:frontend": "npm run dev --prefix frontend",
     "build:frontend": "npm run build --prefix frontend",
-    "start": "node src/backend/server.js",
-    "build": "prisma generate"    
+    "start": "node src/backend/server.js"
   },
   "keywords": [],
   "author": "",

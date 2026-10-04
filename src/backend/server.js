@@ -45,6 +45,14 @@ app.get('{/*path}', (req, res) => {
   }
 });
 
+app.use((err, req, res, next) => {
+  console.error('Server Unhandled Error:', err);
+  res.status(500).json({
+    success: false,
+    message: err.message || 'Terjadi kesalahan internal pada server'
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`[arenaone] Server running on http://localhost:${PORT}`);
 });
