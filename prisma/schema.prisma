@@ -1,0 +1,125 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// 1. MANAGEMENT USER & AUTH
+enum Role {
+  ADMIN
+  OWNER
+  CASHIER
+  CUSTOMER
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(CUSTOMER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relasi
+  branches Branch[]
+  bookings Booking[] // Tambahkan baris ini
+  orders   Order[] // Tambahkan baris ini
+}
+
+model Branch {
+  id        String   @id @default(uuid())
+  name      String
+  address   String
+  phone     String?
+  ownerId   String
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  fields    Field[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Field {
+  id           String    @id @default(uuid())
+  name         String
+  type         String
+  pricePerHour Decimal   @db.Decimal(10, 2)
+  branchId     String
+  branch       Branch    @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  bookings     Booking[] // Tambahkan baris ini
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+model Booking {
+  id          String        @id @default(uuid())
+  userId      String
+  fieldId     String
+  bookingDate DateTime      @db.Date
+  startTime   DateTime
+  endTime     DateTime
+  totalPrice  Decimal       @db.Decimal(10, 2)
+  status      BookingStatus @default(PENDING)
+  createdAt   DateTime      @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  field Field @relation(fields: [fieldId], references: [id])
+}
+
+// 3. MANAGEMENT POS (KANTIN / TOKO OLAHRAGA)
+model Category {
+  id       String    @id @default(uuid())
+  name     String // Contoh: Makanan, Minuman, Peralatan
+  products Product[]
+}
+
+model Product {
+  id         String   @id @default(uuid())
+  categoryId String
+  name       String
+  price      Decimal  @db.Decimal(10, 2)
+  stock      Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  category   Category    @relation(fields: [categoryId], references: [id])
+  orderItems OrderItem[]
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  CANCELLED
+}
+
+model Order {
+  id          String      @id @default(uuid())
+  userId      String // Staf/Kasir yang melayani
+  totalAmount Decimal     @db.Decimal(10, 2)
+  status      OrderStatus @default(PAID)
+  createdAt   DateTime    @default(now())
+
+  user       User        @relation(fields: [userId], references: [id])
+  orderItems OrderItem[]
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Decimal @db.Decimal(10, 2)
+
+  order   Order   @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+}
