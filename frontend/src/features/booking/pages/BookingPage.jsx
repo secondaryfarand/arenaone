@@ -3,11 +3,13 @@ import styles from './BookingPage.module.css';
 import cardStyles from '../components/BookingCard.module.css';
 import { Button } from '../../../components/Button/Button.jsx';
 
+import { API_BASE_URL } from '../../../config/api.js';
+
 export const BookingPage = () => {
   const [fields, setFields] = useState([]);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/v1/booking/fields')
+      fetch(`${API_BASE_URL}/booking/fields`)
       .then((res) => res.json())
       .then((resData) => {
         if (resData.success) {
